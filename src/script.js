@@ -27,7 +27,7 @@ let camera, renderer, scene, canvas, light1, light2, light3, light4
 // let width = window.innerWidth;
 // let height = window.innerHeight;
 let mainObject, particles
-let bloomComposer, glitchPass
+let bloomComposer
 
 const clock = new THREE.Clock()
 let previousTime = 0
@@ -88,7 +88,6 @@ function init() {
     scene.fog = new THREE.Fog( 0x000000, 1, 100 )
     scene.fog.far = fogParams.far
     scene.fog.near = fogParams.near
-    console.log(scene.fog)
 
     // const gltfLoader = new GLTFLoader()
 
@@ -108,9 +107,8 @@ function init() {
             loader.load( 'models/arm_level_00.json', function ( geometry ) {
             geometry.scale.set(0.01,0.01,0.01)
             mainObject = geometry
-            console.log(mainObject)
             scene.add( mainObject );
-            }); 
+            })
 
     /**
      * Sizes
@@ -164,42 +162,42 @@ function init() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
     //lights
-    const sphere = new THREE.SphereGeometry( 0.5, 16, 8 );
-    light1 = new THREE.PointLight( 0xff0040, 2, 5 );
-    light1.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0xff0040 } ) ) );
+    const sphere = new THREE.SphereGeometry( 0.5, 16, 8 )
+    light1 = new THREE.PointLight( 0xff0040, 2, 5 )
+    light1.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0xff0040 } ) ) )
     light1.position.set(0, 0.5, 0)
     light1.scale.set(0.1,0.1,0.1)
-    scene.add( light1 );
+    scene.add( light1 )
 
-    light2 = new THREE.PointLight( 0x0040ff, 2, 5 );
-    light2.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0x0040ff } ) ) );
+    light2 = new THREE.PointLight( 0x0040ff, 2, 5 )
+    light2.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0x0040ff } ) ) )
     light2.position.set(0, 0.5, 0)
     light2.scale.set(0.1,0.1,0.1)
-    scene.add( light2 );
+    scene.add( light2 )
 
-    light3 = new THREE.PointLight( 0x80ff80, 2, 5 );
-    light3.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0x80ff80 } ) ) );
+    light3 = new THREE.PointLight( 0x80ff80, 2, 5 )
+    light3.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0x80ff80 } ) ) )
     light3.position.set(0, 0.5, 0)
     light3.scale.set(0.1,0.1,0.1)
-    scene.add( light3 );
+    scene.add( light3 )
 
-    light4 = new THREE.PointLight( 0xffaa00, 2, 5 );
-    light4.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0xffaa00 } ) ) );
+    light4 = new THREE.PointLight( 0xffaa00, 2, 5 )
+    light4.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0xffaa00 } ) ) )
     light4.position.set(0, 0.5, 0)
     light4.scale.set(0.1,0.1,0.1)
-    scene.add( light4 );
+    scene.add( light4 )
 
     // Post
-    const renderScene = new RenderPass( scene, camera );
+    const renderScene = new RenderPass( scene, camera )
 
-    const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
-    bloomPass.threshold = bloomParams.bloomThreshold;
-    bloomPass.strength = bloomParams.bloomStrength;
-    bloomPass.radius = bloomParams.bloomRadius;
+    const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 )
+    bloomPass.threshold = bloomParams.bloomThreshold
+    bloomPass.strength = bloomParams.bloomStrength
+    bloomPass.radius = bloomParams.bloomRadius
 
-    bloomComposer = new EffectComposer( renderer );
-    bloomComposer.addPass( renderScene );
-    bloomComposer.addPass( bloomPass );
+    bloomComposer = new EffectComposer( renderer )
+    bloomComposer.addPass( renderScene )
+    bloomComposer.addPass( bloomPass )
 
     // Geometry
     const particlesGeometry = new THREE.BufferGeometry()
@@ -248,7 +246,7 @@ function init() {
     // depthFolder.add( depthParams, 'aperture', 0, 10, 0.001 ).onChange( matChanger );
     // depthFolder.add( depthParams, 'maxblur', 0.0, 0.1, 0.001 ).onChange( matChanger );
     // matChanger();
-    const modelFolder = gui.addFolder( 'Model' );
+    const modelFolder = gui.addFolder( 'Model' )
     var wireframeToggle = { add:function(){ 
         if (showingWireframe) {
             scene.traverse( function( object ) {
@@ -278,12 +276,12 @@ function init() {
     modelFolder.add(modelToggle,'add').name('Hide/Show Model')
     modelFolder.add(wireframeToggle,'add').name('Toggle Wireframe')
 
-    const cameraFolder = gui.addFolder( 'Camera' );
+    const cameraFolder = gui.addFolder( 'Camera' )
     cameraFolder.add( cameraParams, 'fov', 30.0, 120.0 ).onChange( function ( value ) {
-        camera.fov = Number( value );
+        camera.fov = Number( value )
     } )
 
-    const fogFolder = gui.addFolder( 'Fog' );
+    const fogFolder = gui.addFolder( 'Fog' )
     fogFolder.add( fogParams, 'far', 0, 200.0 ).onChange( function ( value ) {
         scene.fog.far = Number( value );
     } )
@@ -291,28 +289,28 @@ function init() {
         scene.fog.near = Number( value );
     } )
     fogFolder.addColor( fogParams, 'color', 0, 100.0 ).onChange( function ( value ) {
-        var colorObject = new THREE.Color( value ) ;
-        scene.fog.color = new THREE.Color(colorObject);
+        var colorObject = new THREE.Color( value )
+        scene.fog.color = new THREE.Color(colorObject)
     } )
 
     bloomFolder = gui.addFolder( 'Bloom' );
     bloomFolder.add( bloomParams, 'toneMapping', Object.keys( toneMappingOptions ) )
 					.onChange( function () {
-						updateGUI();
-						renderer.toneMapping = toneMappingOptions[ bloomParams.toneMapping ];
-						tick();
+						updateGUI()
+						renderer.toneMapping = toneMappingOptions[ bloomParams.toneMapping ]
+						tick()
 					} );
     bloomFolder.add( bloomParams, 'bloomThreshold', 0.0, 1.0 ).onChange( function ( value ) {
-        bloomPass.threshold = Number( value );
+        bloomPass.threshold = Number( value )
     } )
     bloomFolder.add( bloomParams, 'bloomStrength', 0.0, 3.0 ).onChange( function ( value ) {
-        bloomPass.strength = Number( value );
+        bloomPass.strength = Number( value )
     } )
     bloomFolder.add( bloomParams, 'bloomRadius', 0.0, 1.0 ).step( 0.01 ).onChange( function ( value ) {
-        bloomPass.radius = Number( value );
+        bloomPass.radius = Number( value )
     } )
 
-    const particleFolder = gui.addFolder( 'Particles' );
+    const particleFolder = gui.addFolder( 'Particles' )
     var obj = { add:function(){ 
         if (particles.visible) {
         particles.visible = false
@@ -349,29 +347,29 @@ function init() {
     }}
     pointLightFolder.add(pointButton,'add').name('Hide/Show PointLights')
     pointLightFolder.add( pointLightParams, 'intensity', 0.0, 5.0 ).step( 0.001 ).onChange( function ( value ) {
-        light1.intensity = Number( value );
-        light2.intensity = Number( value );
-        light3.intensity = Number( value );
-        light4.intensity = Number( value );
+        light1.intensity = Number( value )
+        light2.intensity = Number( value )
+        light3.intensity = Number( value )
+        light4.intensity = Number( value )
     } ).name('Point Intensity')
     
     pointLightFolder.add( pointLightParams, 'distance', 0.0, 20.0 ).step( 0.001 ).onChange( function ( value ) {
-        light1.distance = Number( value );
-        light2.distance = Number( value );
-        light3.distance = Number( value );
-        light4.distance = Number( value );
+        light1.distance = Number( value )
+        light2.distance = Number( value )
+        light3.distance = Number( value )
+        light4.distance = Number( value )
     } ).name('Point Distance')
 }
 
 function updateGUI() {
     if ( guiExposure !== null ) {
-        guiExposure.destroy();
-        guiExposure = null;
+        guiExposure.destroy()
+        guiExposure = null
     }
     if ( bloomParams.toneMapping !== 'None' ) {
         guiExposure = bloomFolder.add( bloomParams, 'exposure', 0, 2 ).onChange( function () {
-            renderer.toneMappingExposure = bloomParams.exposure;
-            tick();
+            renderer.toneMappingExposure = bloomParams.exposure
+            tick()
         } )
     }
 }
@@ -406,7 +404,7 @@ const tick = () =>
 
     // Update controls
     controls.update()
-    camera.updateProjectionMatrix();
+    camera.updateProjectionMatrix()
 
     // Stats
     stats.update()
@@ -426,7 +424,7 @@ const tick = () =>
     light3.position.x = Math.cos( elapsedTime * 0.2 ) * 4
     light4.position.z = Math.cos( elapsedTime * 0.2 ) * 4
 
-    bloomComposer.render();
+    bloomComposer.render()
     //postprocessing.composer.render( 0.1 );
 
     // Call tick again on the next frame
