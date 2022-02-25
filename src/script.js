@@ -3,6 +3,10 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { JSONLoader } from 'three/examples/jsm/loaders/OBJLoader'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js';
 import * as dat from 'lil-gui'
 
 /**
@@ -33,9 +37,15 @@ gltfLoader.load(
         gltf.scene.position.set(0, -1, 0)
         gltf.scene.scale.set(0.1, 0.1, 0.1)
         mainObject = gltf.scene
-        scene.add(mainObject)
+        //scene.add(mainObject)
     }
 )
+
+const loader = new THREE.ObjectLoader();
+        loader.load( 'models/arm_level_00.json', function ( geometry ) {
+            geometry.scale.set(0.1,0.1,0.1)
+        scene.add( geometry );
+        }); 
 
 /**
  * Sizes
@@ -64,7 +74,7 @@ window.addEventListener('resize', () =>
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.001, 3000)
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 1, 200000)
 camera.position.x = -50
 camera.position.y = 30
 camera.position.z = -75
@@ -105,7 +115,7 @@ const tick = () =>
     // Render
     renderer.render(scene, camera)
 
-    console.log(camera.position)
+    //console.log(camera.position)
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
