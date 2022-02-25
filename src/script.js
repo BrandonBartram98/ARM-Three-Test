@@ -24,9 +24,12 @@ let camera, renderer, scene, canvas, light1, light2, light3, light4
 let mainObject, particles
 let composer, glitchPass
 
+const clock = new THREE.Clock()
+let previousTime = 0
+
 const bloomParams = {
     exposure: 1,
-    bloomStrength: 1.5,
+    bloomStrength: 0.5,
     bloomThreshold: 0,
     bloomRadius: 0
 }
@@ -249,9 +252,6 @@ function init() {
     } ).name('Point Distance')
 }
 
-const clock = new THREE.Clock()
-let previousTime = 0
-
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
@@ -281,6 +281,8 @@ const tick = () =>
     light3.position.x = Math.cos( elapsedTime * 0.2 ) * 4
 
     light4.position.z = Math.cos( elapsedTime * 0.2 ) * 4
+
+    composer.render();
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
