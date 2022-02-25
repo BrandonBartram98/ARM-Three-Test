@@ -30,6 +30,18 @@ const bloomParams = {
     bloomThreshold: 0,
     bloomRadius: 0
 }
+const particleParams = {
+    xSpeed: 0.075,
+    ySpeed: 0.05,
+    zSpeed: 0,
+    scale: 1,
+}
+
+let particleXSpeed = particleParams.xSpeed
+let particleYSpeed = particleParams.ySpeed
+let particleZSpeed = particleParams.zSpeed
+let particleScale = particleParams.scale
+
 
 init()
 
@@ -157,7 +169,7 @@ function init() {
     particles = new THREE.Points(particlesGeometry, particlesMaterial)
     scene.add(particles)
 
-    gui.add( bloomParams, 'exposure', 0.1, 2 ).onChange( function ( value ) {
+    gui.add( bloomParams, 'exposure', 0.2, 2 ).onChange( function ( value ) {
         renderer.toneMappingExposure = Math.pow( value, 4.0 );
     } )
     gui.add( bloomParams, 'bloomThreshold', 0.0, 1.0 ).onChange( function ( value ) {
@@ -169,6 +181,7 @@ function init() {
     gui.add( bloomParams, 'bloomRadius', 0.0, 1.0 ).step( 0.01 ).onChange( function ( value ) {
         bloomPass.radius = Number( value );
     } )
+
     var obj = { add:function(){ 
         if (particles.visible) {
         particles.visible = false
@@ -178,12 +191,16 @@ function init() {
         } 
     }}; 
     gui.add(obj,'add').name('Hide/Show Particles');;
+    gui.add( particleParams, 'xSpeed', 0.0, 1.0 ).step( 0.01 ).onChange( function ( value ) {
+        particleXSpeed = Number( value );
+    } )
+    gui.add( particleParams, 'ySpeed', 0.0, 1.0 ).step( 0.001 ).onChange( function ( value ) {
+        particleYSpeed = Number( value );
+    } )
+    gui.add( particleParams, 'zSpeed', 0.0, 1.0 ).step( 0.001 ).onChange( function ( value ) {
+        particleZSpeed = Number( value );
+    } )
 }
-
-function toggleParticles() {
-    
-}
-
 
 const clock = new THREE.Clock()
 let previousTime = 0
@@ -205,8 +222,9 @@ const tick = () =>
 
     //console.log(camera.position)
     if (particles != null) {
-        particles.rotation.y += deltaTime * 0.075
-        particles.rotation.x += deltaTime * 0.05
+        particles.rotation.x += deltaTime * particleXSpeed
+        particles.rotation.y += deltaTime * particleYSpeed
+        particles.rotation.z += deltaTime * particleZSpeed
     }
 
     // Call tick again on the next frame
