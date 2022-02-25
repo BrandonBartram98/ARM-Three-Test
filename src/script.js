@@ -15,6 +15,7 @@ import * as dat from 'lil-gui'
 // Debug
 const gui = new dat.GUI()
 let guiExposure = null;
+let bloomFolder
 
 const container = document.getElementById( 'container' )
 const stats = new Stats()
@@ -31,7 +32,7 @@ let previousTime = 0
 const bloomParams = {
     exposure: 1,
     toneMapping: 'None',
-    bloomStrength: 0.5,
+    bloomStrength: 0.35,
     bloomThreshold: 0,
     bloomRadius: 0
 }
@@ -211,7 +212,7 @@ function init() {
     particles = new THREE.Points(particlesGeometry, particlesMaterial)
     scene.add(particles)
 
-    const bloomFolder = gui.addFolder( 'Bloom' );
+    bloomFolder = gui.addFolder( 'Bloom' );
     bloomFolder.add( bloomParams, 'toneMapping', Object.keys( toneMappingOptions ) )
 					.onChange( function () {
 						updateGUI();
@@ -272,7 +273,7 @@ function updateGUI() {
     }
 
     if ( bloomParams.toneMapping !== 'None' ) {
-        guiExposure = gui.add( bloomParams, 'exposure', 0, 2 )
+        guiExposure = bloomFolder.add( bloomParams, 'exposure', 0, 2 )
             .onChange( function () {
                 renderer.toneMappingExposure = bloomParams.exposure;
                 tick();
