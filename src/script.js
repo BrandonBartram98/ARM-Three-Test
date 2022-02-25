@@ -14,6 +14,7 @@ import * as dat from 'lil-gui'
  */
 // Debug
 const gui = new dat.GUI()
+let guiExposure = null;
 
 const container = document.getElementById( 'container' )
 const stats = new Stats()
@@ -29,10 +30,18 @@ let previousTime = 0
 
 const bloomParams = {
     exposure: 1,
+    toneMapping: 'None',
     bloomStrength: 0.5,
     bloomThreshold: 0,
     bloomRadius: 0
 }
+const toneMappingOptions = {
+    None: THREE.NoToneMapping,
+    Linear: THREE.LinearToneMapping,
+    Reinhard: THREE.ReinhardToneMapping,
+    Cineon: THREE.CineonToneMapping,
+    ACESFilmic: THREE.ACESFilmicToneMapping,
+};
 const particleParams = {
     xSpeed: 0.075,
     ySpeed: 0.05,
@@ -128,7 +137,7 @@ function init() {
     })
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.toneMapping = THREE.ReinhardToneMapping;
+    
 
     //lights
     const sphere = new THREE.SphereGeometry( 0.5, 16, 8 );
@@ -203,9 +212,12 @@ function init() {
     scene.add(particles)
 
     const bloomFolder = gui.addFolder( 'Bloom' );
-    bloomFolder.add( bloomParams, 'exposure', 0.2, 2 ).onChange( function ( value ) {
-        renderer.toneMappingExposure = Math.pow( value, 4.0 );
-    } )
+    bloomFolder.add( bloomParams, 'toneMapping', Object.keys( toneMappingOptions ) )
+					.onChange( function () {
+						updateGUI();
+						renderer.toneMapping = toneMappingOptions[ bloomParams.toneMapping ];
+						tick();
+					} );
     bloomFolder.add( bloomParams, 'bloomThreshold', 0.0, 1.0 ).onChange( function ( value ) {
         bloomPass.threshold = Number( value );
     } )
@@ -250,6 +262,22 @@ function init() {
         light3.distance = Number( value );
         light4.distance = Number( value );
     } ).name('Point Distance')
+}
+
+function updateGUI() {
+
+    if ( guiExposure !== null ) {
+        guiExposure.destroy();
+        guiExposure = null;
+    }
+
+    if ( bloomParams.toneMapping !== 'None' ) {
+        guiExposure = gui.add( bloomParams, 'exposure', 0, 2 )
+            .onChange( function () {
+                renderer.toneMappingExposure = bloomParams.exposure;
+                tick();
+            } );
+    }
 }
 
 const tick = () =>
