@@ -138,7 +138,7 @@ function init() {
     particlesGeometry.setAttribute('rotation', new THREE.BufferAttribute(positions, 3))
 
     const textureLoader = new THREE.TextureLoader()
-    const particleTexture = textureLoader.load('/particles/particles-single.png')
+    const particleTexture = textureLoader.load('/particles/particle.png')
 
     // Material
     const particlesMaterial = new THREE.PointsMaterial({
