@@ -31,7 +31,7 @@ gltfLoader.load(
     (gltf) =>
     {
         gltf.scene.position.set(0, -1, 0)
-        gltf.scene.scale.set(1, 1, 1)
+        gltf.scene.scale.set(0.1, 0.1, 0.1)
         mainObject = gltf.scene
         scene.add(mainObject)
     }
@@ -65,9 +65,9 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.001, 3000)
-camera.position.x = 1
-camera.position.y = 5
-camera.position.z = -20
+camera.position.x = -50
+camera.position.y = 30
+camera.position.z = -75
 scene.add(camera)
 
 // Controls
@@ -104,6 +104,8 @@ const tick = () =>
 
     // Render
     renderer.render(scene, camera)
+
+    console.log(camera.position)
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
