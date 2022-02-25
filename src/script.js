@@ -26,7 +26,7 @@ let camera, renderer, scene, canvas, light1, light2, light3, light4
 let width = window.innerWidth;
 let height = window.innerHeight;
 let mainObject, particles
-let composer, glitchPass
+let bloomComposer, glitchPass
 
 const clock = new THREE.Clock()
 let previousTime = 0
@@ -126,7 +126,7 @@ function init() {
      * Camera
      */
     // Base camera
-    camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 500)
+    camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000)
     camera.position.x = 0
     camera.position.y = 3
     camera.position.z = -6
@@ -183,9 +183,9 @@ function init() {
     bloomPass.strength = bloomParams.bloomStrength;
     bloomPass.radius = bloomParams.bloomRadius;
 
-    composer = new EffectComposer( renderer );
-    composer.addPass( renderScene );
-    composer.addPass( bloomPass );
+    bloomComposer = new EffectComposer( renderer );
+    bloomComposer.addPass( renderScene );
+    bloomComposer.addPass( bloomPass );
 
     // Geometry
     const particlesGeometry = new THREE.BufferGeometry()
@@ -220,21 +220,20 @@ function init() {
     particles = new THREE.Points(particlesGeometry, particlesMaterial)
     scene.add(particles)
 
-    initPostprocessing();
+    // initPostprocessing();
 
-    const matChanger = function ( ) {
+    // const matChanger = function ( ) {
 
-        postprocessing.bokeh.uniforms[ 'focus' ].value = depthParams.focus;
-        postprocessing.bokeh.uniforms[ 'aperture' ].value = depthParams.aperture * 0.00001;
-        postprocessing.bokeh.uniforms[ 'maxblur' ].value = depthParams.maxblur;
-    }
+    //     postprocessing.bokeh.uniforms[ 'focus' ].value = depthParams.focus;
+    //     postprocessing.bokeh.uniforms[ 'aperture' ].value = depthParams.aperture * 0.00001;
+    //     postprocessing.bokeh.uniforms[ 'maxblur' ].value = depthParams.maxblur;
+    // }
 
-    const depthFolder = gui.addFolder( 'Depth of Field' );
-    depthFolder.add( depthParams, 'focus', 10.0, 100.0, 0.001 ).onChange( matChanger );
-    depthFolder.add( depthParams, 'aperture', 0, 10, 0.001 ).onChange( matChanger );
-    depthFolder.add( depthParams, 'maxblur', 0.0, 0.1, 0.001 ).onChange( matChanger );
-
-    matChanger();
+    // const depthFolder = gui.addFolder( 'Depth of Field' );
+    // depthFolder.add( depthParams, 'focus', 10.0, 100.0, 0.001 ).onChange( matChanger );
+    // depthFolder.add( depthParams, 'aperture', 0, 10, 0.001 ).onChange( matChanger );
+    // depthFolder.add( depthParams, 'maxblur', 0.0, 0.1, 0.001 ).onChange( matChanger );
+    // matChanger();
 
     bloomFolder = gui.addFolder( 'Bloom' );
     bloomFolder.add( bloomParams, 'toneMapping', Object.keys( toneMappingOptions ) )
@@ -305,42 +304,35 @@ function init() {
 }
 
 function updateGUI() {
-
-    if ( guiExposure !== null ) {
-        guiExposure.destroy();
-        guiExposure = null;
-    }
-
     if ( bloomParams.toneMapping !== 'None' ) {
-        guiExposure = bloomFolder.add( bloomParams, 'exposure', 0, 2 )
-            .onChange( function () {
-                renderer.toneMappingExposure = bloomParams.exposure;
-                tick();
-            } );
+        guiExposure = bloomFolder.add( bloomParams, 'exposure', 0, 2 ).onChange( function () {
+            renderer.toneMappingExposure = bloomParams.exposure;
+            tick();
+        } )
     }
 }
 
-function initPostprocessing() {
+// function initPostprocessing() {
 
-    const renderPass = new RenderPass( scene, camera );
+//     const renderPass = new RenderPass( scene, camera );
 
-    const bokehPass = new BokehPass( scene, camera, {
-        focus: 1.0,
-        aperture: 0.025,
-        maxblur: 0.01,
+//     const bokehPass = new BokehPass( scene, camera, {
+//         focus: 1.0,
+//         aperture: 0.025,
+//         maxblur: 0.01,
 
-        width: width,
-        height: height
-    } );
+//         width: width,
+//         height: height
+//     } );
 
-    const composer = new EffectComposer( renderer );
+//     const dofComposer = new EffectComposer( renderer );
 
-    composer.addPass( renderPass );
-    composer.addPass( bokehPass );
+//     dofComposer.addPass( renderPass );
+//     dofComposer.addPass( bokehPass );
 
-    postprocessing.composer = composer;
-    postprocessing.bokeh = bokehPass;
-}
+//     postprocessing.composer = dofComposer;
+//     postprocessing.bokeh = bokehPass;
+// }
 
 const tick = () =>
 {
@@ -372,8 +364,8 @@ const tick = () =>
 
     light4.position.z = Math.cos( elapsedTime * 0.2 ) * 4
 
-    composer.render();
-    postprocessing.composer.render( 0.1 );
+    bloomComposer.render();
+    //postprocessing.composer.render( 0.1 );
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
