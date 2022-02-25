@@ -274,13 +274,13 @@ const tick = () =>
         particles.rotation.z += deltaTime * particleZSpeed
     }
 
-    light1.position.x = Math.cos( elapsedTime ) * 3
+    light1.position.x = Math.cos( elapsedTime ) * 4
 
-    light2.position.z = Math.cos( elapsedTime ) * 3
+    light2.position.z = Math.cos( elapsedTime ) * 4
 
-    light3.position.x = Math.cos( elapsedTime * 0.2 ) * 3
+    light3.position.x = Math.cos( elapsedTime * 0.2 ) * 4
 
-    light4.position.z = Math.cos( elapsedTime * 0.2 ) * 3
+    light4.position.z = Math.cos( elapsedTime * 0.2 ) * 4
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
