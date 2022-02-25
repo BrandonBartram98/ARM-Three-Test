@@ -22,6 +22,7 @@ const stats = new Stats()
 container.appendChild( stats.dom )
 
 let controls
+let showingWireframe = false
 let camera, renderer, scene, canvas, light1, light2, light3, light4
 let width = window.innerWidth;
 let height = window.innerHeight;
@@ -37,6 +38,9 @@ const bloomParams = {
     bloomStrength: 0.35,
     bloomThreshold: 0,
     bloomRadius: 0
+}
+const cameraParams = {
+    fov: 75
 }
 const toneMappingOptions = {
     None: THREE.NoToneMapping,
@@ -82,21 +86,23 @@ function init() {
     const gltfLoader = new GLTFLoader()
 
     let mixer = null
-    gltfLoader.load(
-        'models/arm_level_00.gltf',
-        (gltf) =>
-        {
-            gltf.scene.position.set(0, -1, 0)
-            gltf.scene.scale.set(0.1, 0.1, 0.1)
-            mainObject = gltf.scene
-            //scene.add(mainObject)
-        }
-    )
+    // gltfLoader.load(
+    //     'models/arm_level_00.gltf',
+    //     (gltf) =>
+    //     {
+    //         gltf.scene.position.set(0, -1, 0)
+    //         gltf.scene.scale.set(0.1, 0.1, 0.1)
+    //         //mainObject = gltf.scene
+    //         //scene.add(mainObject)
+    //     }
+    // )
 
     const loader = new THREE.ObjectLoader();
             loader.load( 'models/arm_level_00.json', function ( geometry ) {
             geometry.scale.set(0.01,0.01,0.01)
-            scene.add( geometry );
+            mainObject = geometry
+            console.log(mainObject)
+            scene.add( mainObject );
             }); 
 
     /**
@@ -128,14 +134,16 @@ function init() {
     // Base camera
     camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000)
     camera.position.x = 0
-    camera.position.y = 3
-    camera.position.z = -6
+    camera.position.y = 4
+    camera.position.z = -8
+    camera.fov = cameraParams.fov
     scene.add(camera)
 
     // Controls
     controls = new OrbitControls(camera, canvas)
     controls.enableDamping = true
     controls.maxPolarAngle = 0.9 * Math.PI / 2;
+    controls.maxDistance = 20
 
 
     /**
@@ -147,7 +155,6 @@ function init() {
     })
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    
 
     //lights
     const sphere = new THREE.SphereGeometry( 0.5, 16, 8 );
@@ -206,7 +213,7 @@ function init() {
 
     // Material
     const particlesMaterial = new THREE.PointsMaterial({
-        size: 0.05,
+        size: 0.03,
         sizeAttenuation: true
     })
 
@@ -234,6 +241,40 @@ function init() {
     // depthFolder.add( depthParams, 'aperture', 0, 10, 0.001 ).onChange( matChanger );
     // depthFolder.add( depthParams, 'maxblur', 0.0, 0.1, 0.001 ).onChange( matChanger );
     // matChanger();
+    const modelFolder = gui.addFolder( 'Model' );
+    var wireframeToggle = { add:function(){ 
+        if (showingWireframe) {
+            scene.traverse( function( object ) {
+                if ( object.material ) {
+                    object.material.wireframe = false
+                    showingWireframe = false
+                }
+            } )
+        }
+        else {
+            scene.traverse( function( object ) {
+                if ( object.material ) {
+                    object.material.wireframe = true;
+                    showingWireframe = true
+                }
+            } );
+        } 
+    }}
+    var modelToggle = { add:function(){ 
+        if (mainObject.visible) {
+            mainObject.visible = false
+        }
+        else {
+            mainObject.visible = true
+        } 
+    }}
+    modelFolder.add(modelToggle,'add').name('Hide/Show Model')
+    modelFolder.add(wireframeToggle,'add').name('Toggle Wireframe')
+
+    const cameraFolder = gui.addFolder( 'Camera' );
+    cameraFolder.add( cameraParams, 'fov', 30.0, 120.0 ).onChange( function ( value ) {
+        camera.fov = Number( value );
+    } )
 
     bloomFolder = gui.addFolder( 'Bloom' );
     bloomFolder.add( bloomParams, 'toneMapping', Object.keys( toneMappingOptions ) )
@@ -342,6 +383,7 @@ const tick = () =>
 
     // Update controls
     controls.update()
+    camera.updateProjectionMatrix();
 
     // Stats
     stats.update()
@@ -357,11 +399,8 @@ const tick = () =>
     }
 
     light1.position.x = Math.cos( elapsedTime ) * 4
-
     light2.position.z = Math.cos( elapsedTime ) * 4
-
     light3.position.x = Math.cos( elapsedTime * 0.2 ) * 4
-
     light4.position.z = Math.cos( elapsedTime * 0.2 ) * 4
 
     bloomComposer.render();
