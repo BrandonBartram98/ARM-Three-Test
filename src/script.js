@@ -20,7 +20,7 @@ const stats = new Stats()
 container.appendChild( stats.dom )
 
 let controls
-let camera, renderer, scene, canvas
+let camera, renderer, scene, canvas, light1, light2, light3, light4
 let mainObject, particles
 let composer, glitchPass
 
@@ -35,6 +35,10 @@ const particleParams = {
     ySpeed: 0.05,
     zSpeed: 0,
     scale: 1,
+}
+const pointLightParams = {
+    intensity: 2,
+    distance: 5
 }
 
 let particleXSpeed = particleParams.xSpeed
@@ -123,6 +127,32 @@ function init() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.toneMapping = THREE.ReinhardToneMapping;
 
+    //lights
+    const sphere = new THREE.SphereGeometry( 0.5, 16, 8 );
+    light1 = new THREE.PointLight( 0xff0040, 2, 5 );
+    light1.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0xff0040 } ) ) );
+    light1.position.set(0, 0.5, 0)
+    light1.scale.set(0.1,0.1,0.1)
+    scene.add( light1 );
+
+    light2 = new THREE.PointLight( 0x0040ff, 2, 5 );
+    light2.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0x0040ff } ) ) );
+    light2.position.set(0, 0.5, 0)
+    light2.scale.set(0.1,0.1,0.1)
+    scene.add( light2 );
+
+    light3 = new THREE.PointLight( 0x80ff80, 2, 5 );
+    light3.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0x80ff80 } ) ) );
+    light3.position.set(0, 0.5, 0)
+    light3.scale.set(0.1,0.1,0.1)
+    scene.add( light3 );
+
+    light4 = new THREE.PointLight( 0xffaa00, 2, 5 );
+    light4.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0xffaa00 } ) ) );
+    light4.position.set(0, 0.5, 0)
+    light4.scale.set(0.1,0.1,0.1)
+    scene.add( light4 );
+
     // Post
     const renderScene = new RenderPass( scene, camera );
 
@@ -169,19 +199,21 @@ function init() {
     particles = new THREE.Points(particlesGeometry, particlesMaterial)
     scene.add(particles)
 
-    gui.add( bloomParams, 'exposure', 0.2, 2 ).onChange( function ( value ) {
+    const bloomFolder = gui.addFolder( 'Bloom' );
+    bloomFolder.add( bloomParams, 'exposure', 0.2, 2 ).onChange( function ( value ) {
         renderer.toneMappingExposure = Math.pow( value, 4.0 );
     } )
-    gui.add( bloomParams, 'bloomThreshold', 0.0, 1.0 ).onChange( function ( value ) {
+    bloomFolder.add( bloomParams, 'bloomThreshold', 0.0, 1.0 ).onChange( function ( value ) {
         bloomPass.threshold = Number( value );
     } )
-    gui.add( bloomParams, 'bloomStrength', 0.0, 3.0 ).onChange( function ( value ) {
+    bloomFolder.add( bloomParams, 'bloomStrength', 0.0, 3.0 ).onChange( function ( value ) {
         bloomPass.strength = Number( value );
     } )
-    gui.add( bloomParams, 'bloomRadius', 0.0, 1.0 ).step( 0.01 ).onChange( function ( value ) {
+    bloomFolder.add( bloomParams, 'bloomRadius', 0.0, 1.0 ).step( 0.01 ).onChange( function ( value ) {
         bloomPass.radius = Number( value );
     } )
 
+    const particleFolder = gui.addFolder( 'Particles' );
     var obj = { add:function(){ 
         if (particles.visible) {
         particles.visible = false
@@ -189,17 +221,32 @@ function init() {
         else {
             particles.visible = true
         } 
-    }}; 
-    gui.add(obj,'add').name('Hide/Show Particles');;
-    gui.add( particleParams, 'xSpeed', 0.0, 1.0 ).step( 0.01 ).onChange( function ( value ) {
+    }}
+    particleFolder.add(obj,'add').name('Hide/Show Particles')
+    particleFolder.add( particleParams, 'xSpeed', 0.0, 1.0 ).step( 0.01 ).onChange( function ( value ) {
         particleXSpeed = Number( value );
     } )
-    gui.add( particleParams, 'ySpeed', 0.0, 1.0 ).step( 0.001 ).onChange( function ( value ) {
+    particleFolder.add( particleParams, 'ySpeed', 0.0, 1.0 ).step( 0.001 ).onChange( function ( value ) {
         particleYSpeed = Number( value );
     } )
-    gui.add( particleParams, 'zSpeed', 0.0, 1.0 ).step( 0.001 ).onChange( function ( value ) {
+    particleFolder.add( particleParams, 'zSpeed', 0.0, 1.0 ).step( 0.001 ).onChange( function ( value ) {
         particleZSpeed = Number( value );
     } )
+
+    const pointLightFolder = gui.addFolder( 'Point Lights' );
+    pointLightFolder.add( pointLightParams, 'intensity', 0.0, 5.0 ).step( 0.001 ).onChange( function ( value ) {
+        light1.intensity = Number( value );
+        light2.intensity = Number( value );
+        light3.intensity = Number( value );
+        light4.intensity = Number( value );
+    } ).name('Point Intensity')
+    
+    pointLightFolder.add( pointLightParams, 'distance', 0.0, 20.0 ).step( 0.001 ).onChange( function ( value ) {
+        light1.distance = Number( value );
+        light2.distance = Number( value );
+        light3.distance = Number( value );
+        light4.distance = Number( value );
+    } ).name('Point Distance')
 }
 
 const clock = new THREE.Clock()
@@ -215,7 +262,7 @@ const tick = () =>
     controls.update()
 
     // Stats
-    stats.update();
+    stats.update()
 
     // Render
     renderer.render(scene, camera)
@@ -226,6 +273,14 @@ const tick = () =>
         particles.rotation.y += deltaTime * particleYSpeed
         particles.rotation.z += deltaTime * particleZSpeed
     }
+
+    light1.position.x = Math.cos( elapsedTime ) * 3
+
+    light2.position.z = Math.cos( elapsedTime ) * 3
+
+    light3.position.x = Math.cos( elapsedTime * 0.2 ) * 3
+
+    light4.position.z = Math.cos( elapsedTime * 0.2 ) * 3
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
