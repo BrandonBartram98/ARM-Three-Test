@@ -24,8 +24,8 @@ container.appendChild( stats.dom )
 let controls
 let showingWireframe = false
 let camera, renderer, scene, canvas, light1, light2, light3, light4
-let width = window.innerWidth;
-let height = window.innerHeight;
+// let width = window.innerWidth;
+// let height = window.innerHeight;
 let mainObject, particles
 let bloomComposer, glitchPass
 
@@ -41,6 +41,11 @@ const bloomParams = {
 }
 const cameraParams = {
     fov: 75
+}
+const fogParams = {
+    far: 100,
+    near: 1,
+    color: 0x000000
 }
 const toneMappingOptions = {
     None: THREE.NoToneMapping,
@@ -70,8 +75,7 @@ let particleYSpeed = particleParams.ySpeed
 let particleZSpeed = particleParams.zSpeed
 let particleScale = particleParams.scale
 
-const postprocessing = {};
-
+// const postprocessing = {};
 
 init()
 
@@ -81,11 +85,14 @@ function init() {
 
     // Scene
     scene = new THREE.Scene()
-    scene.fog = new THREE.Fog( 0x000000, 1, 2000 );
+    scene.fog = new THREE.Fog( 0x000000, 1, 100 )
+    scene.fog.far = fogParams.far
+    scene.fog.near = fogParams.near
+    console.log(scene.fog)
 
-    const gltfLoader = new GLTFLoader()
+    // const gltfLoader = new GLTFLoader()
 
-    let mixer = null
+    // let mixer = null
     // gltfLoader.load(
     //     'models/arm_level_00.gltf',
     //     (gltf) =>
@@ -276,6 +283,18 @@ function init() {
         camera.fov = Number( value );
     } )
 
+    const fogFolder = gui.addFolder( 'Fog' );
+    fogFolder.add( fogParams, 'far', 0, 200.0 ).onChange( function ( value ) {
+        scene.fog.far = Number( value );
+    } )
+    fogFolder.add( fogParams, 'near', 0, 100.0 ).onChange( function ( value ) {
+        scene.fog.near = Number( value );
+    } )
+    fogFolder.addColor( fogParams, 'color', 0, 100.0 ).onChange( function ( value ) {
+        var colorObject = new THREE.Color( value ) ;
+        scene.fog.color = new THREE.Color(colorObject);
+    } )
+
     bloomFolder = gui.addFolder( 'Bloom' );
     bloomFolder.add( bloomParams, 'toneMapping', Object.keys( toneMappingOptions ) )
 					.onChange( function () {
@@ -345,6 +364,10 @@ function init() {
 }
 
 function updateGUI() {
+    if ( guiExposure !== null ) {
+        guiExposure.destroy();
+        guiExposure = null;
+    }
     if ( bloomParams.toneMapping !== 'None' ) {
         guiExposure = bloomFolder.add( bloomParams, 'exposure', 0, 2 ).onChange( function () {
             renderer.toneMappingExposure = bloomParams.exposure;
