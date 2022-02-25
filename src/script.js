@@ -5,7 +5,7 @@ import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
+import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import * as dat from 'lil-gui'
 
@@ -23,6 +23,8 @@ container.appendChild( stats.dom )
 
 let controls
 let camera, renderer, scene, canvas, light1, light2, light3, light4
+let width = window.innerWidth;
+let height = window.innerHeight;
 let mainObject, particles
 let composer, glitchPass
 
@@ -42,7 +44,12 @@ const toneMappingOptions = {
     Reinhard: THREE.ReinhardToneMapping,
     Cineon: THREE.CineonToneMapping,
     ACESFilmic: THREE.ACESFilmicToneMapping,
-};
+}
+const depthParams = {
+    focus: 10.0,
+    aperture: 5,
+    maxblur: 0.01
+}
 const particleParams = {
     xSpeed: 0.075,
     ySpeed: 0.05,
@@ -58,6 +65,8 @@ let particleXSpeed = particleParams.xSpeed
 let particleYSpeed = particleParams.ySpeed
 let particleZSpeed = particleParams.zSpeed
 let particleScale = particleParams.scale
+
+const postprocessing = {};
 
 
 init()
@@ -207,10 +216,25 @@ function init() {
     particlesMaterial.alphaTest = 0.001
     particlesMaterial.depthWrite = false
     particlesMaterial.blending = THREE.AdditiveBlending
-
     // Points
     particles = new THREE.Points(particlesGeometry, particlesMaterial)
     scene.add(particles)
+
+    initPostprocessing();
+
+    const matChanger = function ( ) {
+
+        postprocessing.bokeh.uniforms[ 'focus' ].value = depthParams.focus;
+        postprocessing.bokeh.uniforms[ 'aperture' ].value = depthParams.aperture * 0.00001;
+        postprocessing.bokeh.uniforms[ 'maxblur' ].value = depthParams.maxblur;
+    }
+
+    const depthFolder = gui.addFolder( 'Depth of Field' );
+    depthFolder.add( depthParams, 'focus', 10.0, 100.0, 0.001 ).onChange( matChanger );
+    depthFolder.add( depthParams, 'aperture', 0, 10, 0.001 ).onChange( matChanger );
+    depthFolder.add( depthParams, 'maxblur', 0.0, 0.1, 0.001 ).onChange( matChanger );
+
+    matChanger();
 
     bloomFolder = gui.addFolder( 'Bloom' );
     bloomFolder.add( bloomParams, 'toneMapping', Object.keys( toneMappingOptions ) )
@@ -250,6 +274,21 @@ function init() {
     } )
 
     const pointLightFolder = gui.addFolder( 'Point Lights' );
+    var pointButton = { add:function(){ 
+        if (light1.visible) {
+            light1.visible = false
+            light2.visible = false
+            light3.visible = false
+            light4.visible = false
+        }
+        else {
+            light1.visible = true
+            light2.visible = true
+            light3.visible = true
+            light4.visible = true
+        } 
+    }}
+    pointLightFolder.add(pointButton,'add').name('Hide/Show PointLights')
     pointLightFolder.add( pointLightParams, 'intensity', 0.0, 5.0 ).step( 0.001 ).onChange( function ( value ) {
         light1.intensity = Number( value );
         light2.intensity = Number( value );
@@ -279,6 +318,28 @@ function updateGUI() {
                 tick();
             } );
     }
+}
+
+function initPostprocessing() {
+
+    const renderPass = new RenderPass( scene, camera );
+
+    const bokehPass = new BokehPass( scene, camera, {
+        focus: 1.0,
+        aperture: 0.025,
+        maxblur: 0.01,
+
+        width: width,
+        height: height
+    } );
+
+    const composer = new EffectComposer( renderer );
+
+    composer.addPass( renderPass );
+    composer.addPass( bokehPass );
+
+    postprocessing.composer = composer;
+    postprocessing.bokeh = bokehPass;
 }
 
 const tick = () =>
@@ -312,6 +373,7 @@ const tick = () =>
     light4.position.z = Math.cos( elapsedTime * 0.2 ) * 4
 
     composer.render();
+    postprocessing.composer.render( 0.1 );
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
