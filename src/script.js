@@ -14,6 +14,7 @@ import * as dat from 'lil-gui'
  */
 // Debug
 const gui = new dat.GUI()
+gui.close()
 let guiExposure = null;
 let bloomFolder
 
@@ -28,6 +29,20 @@ let camera, renderer, scene, canvas, light1, light2, light3, light4
 // let height = window.innerHeight;
 let mainObject, particles
 let bloomComposer
+
+const loadingElement = document.querySelector('.loading-screen')
+const loadingManager = new THREE.LoadingManager(
+    // Loaded
+    () =>
+    {
+        // Wait a little
+        window.setTimeout(() =>
+        {
+            loadingElement.classList.add( 'fade-out' );
+            gui.open()
+        }, 500)
+    }
+)
 
 const clock = new THREE.Clock()
 let previousTime = 0
@@ -89,7 +104,7 @@ function init() {
     scene.fog.far = fogParams.far
     scene.fog.near = fogParams.near
 
-    // const gltfLoader = new GLTFLoader()
+    // const gltfLoader = new GLTFLoader(loadingManager)
 
     // let mixer = null
     // gltfLoader.load(
@@ -103,7 +118,7 @@ function init() {
     //     }
     // )
 
-    const loader = new THREE.ObjectLoader();
+    const loader = new THREE.ObjectLoader(loadingManager);
             loader.load( 'models/arm_level_01.json', function ( geometry ) {
             geometry.scale.set(0.01,0.01,0.01)
             mainObject = geometry
@@ -131,6 +146,7 @@ function init() {
         // Update renderer
         renderer.setSize(sizes.width, sizes.height)
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+        bloomComposer.setSize(sizes.width, sizes.height)
     })
 
     /**
