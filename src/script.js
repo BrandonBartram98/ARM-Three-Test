@@ -156,7 +156,7 @@ function init() {
     camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000)
     camera.position.x = 0
     camera.position.y = 2.5
-    camera.position.z = -4
+    camera.position.z = -5
     camera.fov = cameraParams.fov
     scene.add(camera)
 
@@ -176,6 +176,15 @@ function init() {
     })
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    const renderTarget = new THREE.WebGLMultisampleRenderTarget(
+        sizes.width,
+        sizes.height,
+        {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBAFormat
+        }
+    )
 
     //lights
     const sphere = new THREE.SphereGeometry( 0.5, 16, 8 )
@@ -211,7 +220,9 @@ function init() {
     bloomPass.strength = bloomParams.bloomStrength
     bloomPass.radius = bloomParams.bloomRadius
 
-    bloomComposer = new EffectComposer( renderer )
+    bloomComposer = new EffectComposer( renderer, renderTarget )
+    bloomComposer.setSize(sizes.width, sizes.height)
+    bloomComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     bloomComposer.addPass( renderScene )
     bloomComposer.addPass( bloomPass )
 
@@ -298,7 +309,7 @@ function init() {
     } )
 
     const fogFolder = gui.addFolder( 'Fog' )
-    fogFolder.add( fogParams, 'far', 0, 200.0 ).onChange( function ( value ) {
+    fogFolder.add( fogParams, 'far', 0, 100.0 ).onChange( function ( value ) {
         scene.fog.far = Number( value );
     } )
     fogFolder.add( fogParams, 'near', 0, 100.0 ).onChange( function ( value ) {
