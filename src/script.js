@@ -104,7 +104,7 @@ function init() {
     // )
 
     const loader = new THREE.ObjectLoader();
-            loader.load( 'models/arm_level_00.json', function ( geometry ) {
+            loader.load( 'models/arm_level_01.json', function ( geometry ) {
             geometry.scale.set(0.01,0.01,0.01)
             mainObject = geometry
             scene.add( mainObject );
