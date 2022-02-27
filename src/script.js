@@ -5,8 +5,11 @@ import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js';
+//import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import typefaceFont from 'three/examples/fonts/helvetiker_regular.typeface.json'
 import * as dat from 'lil-gui'
 
 /**
@@ -27,7 +30,7 @@ let showingWireframe = false
 let camera, renderer, scene, canvas, light1, light2, light3, light4
 // let width = window.innerWidth;
 // let height = window.innerHeight;
-let mainObject, particles
+let mainObject, particles, armText
 let bloomComposer
 
 const loadingElement = document.querySelector('.loading-screen')
@@ -117,6 +120,39 @@ function init() {
     //         //scene.add(mainObject)
     //     }
     // )
+
+    /**
+     * Fonts
+    */
+    const fontLoader = new FontLoader()
+
+    fontLoader.load(
+        '/fonts/helvetiker_regular.typeface.json',
+        (font) =>
+        {
+            const textGeometry = new TextGeometry(
+                'ARM GCC2022',
+                {
+                    font: font,
+                    size: 0.5,
+                    height: 0.2,
+                    curveSegments: 12,
+                    bevelEnabled: true,
+                    bevelThickness: 0.03,
+                    bevelSize: 0.02,
+                    bevelOffset: 0,
+                    bevelSegments: 5
+                }
+            )
+            textGeometry.center()
+            const textMaterial = new THREE.MeshBasicMaterial()
+            const text = new THREE.Mesh(textGeometry, textMaterial)
+            text.position.set(0, 1, 4.5)
+            text.rotateY(Math.PI)
+            armText = text
+            scene.add(armText)
+        }
+    )
 
     const loader = new THREE.ObjectLoader(loadingManager);
             loader.load( 'models/arm_level_01.json', function ( geometry ) {
@@ -300,7 +336,16 @@ function init() {
             mainObject.visible = true
         } 
     }}
+    var textToggle = { add:function(){ 
+        if (armText.visible) {
+            armText.visible = false
+        }
+        else {
+            armText.visible = true
+        } 
+    }}
     modelFolder.add(modelToggle,'add').name('Hide/Show Model')
+    modelFolder.add(textToggle,'add').name('Hide/Show ARM Text')
     modelFolder.add(wireframeToggle,'add').name('Toggle Wireframe')
 
     const cameraFolder = gui.addFolder( 'Camera' )
