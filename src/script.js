@@ -12,13 +12,20 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { gsap } from 'gsap'
 import * as dat from 'lil-gui'
 
+let isMobile = false
+let orbitMode = false;
+
 /**
  * Base
  */
 // Debug
 const gui = new dat.GUI()
-gui.close()
-let guiExposure = null;
+if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+    // true for mobile device
+    gui.close()
+    isMobile = true
+  }
+let guiExposure = null
 let bloomFolder
 
 const container = document.getElementById( 'container' )
@@ -39,18 +46,27 @@ let overlayScreen = document.getElementById('overlay-menu')
 let overlayClose = document.getElementById('close-button')
 
 startButton.addEventListener("click", function() {
-    welcomeScreen.style.backgroundColor = "rgba(0, 0, 0, 0)";
-    welcomeScreen.style.opacity = "0";
-    welcomeScreen.style.pointerEvents = "none";
+    welcomeScreen.style.opacity = "0"
+    welcomeScreen.style.pointerEvents = "none"
     window.setTimeout(function() {
-        welcomeScreen.style.display = "none";
-    }, 1000);
-    gsap.to(camera.position, {duration: 5, ease: "power1.inOut", x: -0.771252725913379, z: -0.5044666945134052 })
-    gsap.to(camera.position, {duration: 6, ease: "power1.inOut", y: -0.4881855572857587, onComplete: tweenCompleted })
+        welcomeScreen.style.display = "none"
+    }, 1000)
+    if (isMobile) {
+        gsap.to(camera.position, {duration: 5, ease: "power1.inOut", x: -0.771252725913379, z: -0.5044666945134052 })
+        gsap.to(camera, {duration: 5, fov: 120 })
+        gsap.to(camera.position, {duration: 6, ease: "power1.inOut", y: -0.4881855572857587, onComplete: tweenCompleted })
+    }
+    else {
+        gsap.to(camera.position, {duration: 5, ease: "power1.inOut", x: -0.771252725913379, z: -0.5044666945134052 })
+        gsap.to(camera, {duration: 5, fov: 50 })
+        gsap.to(camera.position, {duration: 6, ease: "power1.inOut", y: -0.4881855572857587, onComplete: tweenCompleted })
+    }
 })
 
 overlayClose.addEventListener("click", function() {
     overlayScreen.classList.remove("overlay-slide")
+    gsap.to(camera, {duration: 2, fov: 75 })
+    orbitMode = true
 })
 
 const loadingElement = document.querySelector('.loading-screen')
@@ -75,9 +91,6 @@ const bloomParams = {
     bloomStrength: 0.35,
     bloomThreshold: 0,
     bloomRadius: 0
-}
-const cameraParams = {
-    fov: 75
 }
 const fogParams = {
     far: 100,
@@ -213,7 +226,6 @@ function init() {
     camera.position.y = 3
     camera.position.z = -8
     camera.lookAt(0,-0.5,0)
-    camera.fov = cameraParams.fov
     scene.add(camera)
 
     /**
@@ -323,6 +335,7 @@ function init() {
     // depthFolder.add( depthParams, 'maxblur', 0.0, 0.1, 0.001 ).onChange( matChanger );
     // matChanger();
     const modelFolder = gui.addFolder( 'Model' )
+    modelFolder.close()
     var wireframeToggle = { add:function(){ 
         if (showingWireframe) {
             scene.traverse( function( object ) {
@@ -362,11 +375,17 @@ function init() {
     modelFolder.add(wireframeToggle,'add').name('Toggle Wireframe')
 
     const cameraFolder = gui.addFolder( 'Camera' )
-    cameraFolder.add( cameraParams, 'fov', 30.0, 120.0 ).onChange( function ( value ) {
-        camera.fov = Number( value )
-    } )
+    cameraFolder.close()
+    cameraFolder.add( camera, "fov", 30.0, 120.0 ).listen()
+    cameraFolder.add( camera.position, "x").listen().name("pos X")
+    cameraFolder.add( camera.position, "y").listen().name("pos Y")
+    cameraFolder.add( camera.position, "z").listen().name("pos Z")
+    cameraFolder.add( camera.rotation, "x").listen().name("rot X")
+    cameraFolder.add( camera.rotation, "y").listen().name("rot Y")
+    cameraFolder.add( camera.rotation, "z").listen().name("rot Z")
 
     const fogFolder = gui.addFolder( 'Fog' )
+    fogFolder.close()
     fogFolder.add( fogParams, 'far', 0, 100.0 ).onChange( function ( value ) {
         scene.fog.far = Number( value );
     } )
@@ -375,10 +394,11 @@ function init() {
     } )
     fogFolder.addColor( fogParams, 'color', 0, 100.0 ).onChange( function ( value ) {
         var colorObject = new THREE.Color( value )
-        scene.fog.color = new THREE.Color(colorObject)
+        scene.fog.color = colorObject
     } )
 
     bloomFolder = gui.addFolder( 'Bloom' );
+    bloomFolder.close()
     bloomFolder.add( bloomParams, 'toneMapping', Object.keys( toneMappingOptions ) )
 					.onChange( function () {
 						updateGUI()
@@ -396,6 +416,7 @@ function init() {
     } )
 
     const particleFolder = gui.addFolder( 'Particles' )
+    particleFolder.close()
     var obj = { add:function(){ 
         if (particles.visible) {
         particles.visible = false
@@ -416,6 +437,7 @@ function init() {
     } )
 
     const pointLightFolder = gui.addFolder( 'Point Lights' );
+    pointLightFolder.close()
     var pointButton = { add:function(){ 
         if (light1.visible) {
             light1.visible = false
@@ -502,7 +524,9 @@ const tick = () =>
             
         }
     }
-    camera.lookAt(0, -0.5, 0)
+    if (!orbitMode) {
+        camera.lookAt(0, -0.5, 0)
+    }
     camera.updateProjectionMatrix()
 
     // Stats
