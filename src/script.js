@@ -33,6 +33,26 @@ let camera, renderer, scene, canvas, light1, light2, light3, light4
 let mainObject, particles, armText
 let bloomComposer
 
+let welcomeScreen = document.getElementById('welcome-screen')
+let startButton = document.getElementById('start-button')
+let overlayScreen = document.getElementById('overlay-menu')
+let overlayClose = document.getElementById('close-button')
+
+startButton.addEventListener("click", function() {
+    welcomeScreen.style.backgroundColor = "rgba(0, 0, 0, 0)";
+    welcomeScreen.style.opacity = "0";
+    welcomeScreen.style.pointerEvents = "none";
+    window.setTimeout(function() {
+        welcomeScreen.style.display = "none";
+    }, 1000);
+    gsap.to(camera.position, {duration: 5, ease: "power1.inOut", x: -0.771252725913379, z: -0.5044666945134052 })
+    gsap.to(camera.position, {duration: 6, ease: "power1.inOut", y: -0.4881855572857587, onComplete: tweenCompleted })
+})
+
+overlayClose.addEventListener("click", function() {
+    overlayScreen.classList.remove("overlay-slide")
+})
+
 const loadingElement = document.querySelector('.loading-screen')
 const loadingManager = new THREE.LoadingManager(
     // Loaded
@@ -42,8 +62,6 @@ const loadingManager = new THREE.LoadingManager(
         window.setTimeout(() =>
         {
             loadingElement.classList.add( 'fade-out' );
-            gsap.to(camera.position, {duration: 5, x: -0.771252725913379, z: -0.5044666945134052 })
-            gsap.to(camera.position, {duration: 6, y: -0.4881855572857587, onComplete: enableOrbit })
         }, 200)
     }
 )
@@ -441,11 +459,12 @@ function updateGUI() {
     }
 }
 
-function enableOrbit() {
+function tweenCompleted() {
     controls = new OrbitControls(camera, canvas)
     controls.enabled = true
     controls.enableDamping = true
     controls.maxDistance = 30
+    overlayScreen.classList.add("overlay-slide")
 }
 
 // function initPostprocessing() {
