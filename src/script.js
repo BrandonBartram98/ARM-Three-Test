@@ -13,7 +13,7 @@ import { gsap } from 'gsap'
 import * as dat from 'lil-gui'
 
 let isMobile = false
-let orbitMode = false;
+let orbitMode = false
 
 /**
  * Base
@@ -67,6 +67,11 @@ overlayClose.addEventListener("click", function() {
     overlayScreen.classList.remove("overlay-slide")
     gsap.to(camera, {duration: 2, fov: 75 })
     orbitMode = true
+    controls = new OrbitControls(camera, canvas)
+    controls.enabled = true
+    controls.enableDamping = true
+    controls.maxDistance = 30
+	controls.rotateSpeed = 0.5;
 })
 
 const loadingElement = document.querySelector('.loading-screen')
@@ -482,10 +487,6 @@ function updateGUI() {
 }
 
 function tweenCompleted() {
-    controls = new OrbitControls(camera, canvas)
-    controls.enabled = true
-    controls.enableDamping = true
-    controls.maxDistance = 30
     overlayScreen.classList.add("overlay-slide")
 }
 

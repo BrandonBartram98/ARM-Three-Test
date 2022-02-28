@@ -131,7 +131,7 @@ h2 {
 
 .button {
     background-color: #ffffff;
-    font-weight: 300;
+    font-weight: 400;
     border: none;
     color: black;
     padding: 15px 32px;
@@ -144,6 +144,7 @@ h2 {
     border-radius: 15px;
     transition-duration: 0.4s;
     margin-bottom: 40px;
+    font-family: Lato;
   }
   .button:hover {
     background-color: #a8a8a8;
