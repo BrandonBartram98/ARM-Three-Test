@@ -9,7 +9,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
-import typefaceFont from 'three/examples/fonts/helvetiker_regular.typeface.json'
+import { gsap } from 'gsap'
 import * as dat from 'lil-gui'
 
 /**
@@ -42,8 +42,9 @@ const loadingManager = new THREE.LoadingManager(
         window.setTimeout(() =>
         {
             loadingElement.classList.add( 'fade-out' );
-            gui.open()
-        }, 500)
+            gsap.to(camera.position, {duration: 5, x: -0.771252725913379, z: -0.5044666945134052 })
+            gsap.to(camera.position, {duration: 6, y: -0.4881855572857587, onComplete: enableOrbit })
+        }, 200)
     }
 )
 
@@ -127,7 +128,7 @@ function init() {
     const fontLoader = new FontLoader()
 
     fontLoader.load(
-        'fonts/helvetiker_regular.typeface.json',
+        'fonts/Lato_Bold.json',
         (font) =>
         {
             const textGeometry = new TextGeometry(
@@ -190,18 +191,12 @@ function init() {
      */
     // Base camera
     camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000)
-    camera.position.x = 0
-    camera.position.y = 2.5
-    camera.position.z = -5
+    camera.position.x = 5
+    camera.position.y = 3
+    camera.position.z = -8
+    camera.lookAt(0,-0.5,0)
     camera.fov = cameraParams.fov
     scene.add(camera)
-
-    // Controls
-    controls = new OrbitControls(camera, canvas)
-    controls.enableDamping = true
-    controls.maxPolarAngle = 0.9 * Math.PI / 2;
-    controls.maxDistance = 20
-
 
     /**
      * Renderer
@@ -446,6 +441,13 @@ function updateGUI() {
     }
 }
 
+function enableOrbit() {
+    controls = new OrbitControls(camera, canvas)
+    controls.enabled = true
+    controls.enableDamping = true
+    controls.maxDistance = 30
+}
+
 // function initPostprocessing() {
 
 //     const renderPass = new RenderPass( scene, camera );
@@ -475,7 +477,13 @@ const tick = () =>
     previousTime = elapsedTime
 
     // Update controls
-    controls.update()
+    if (controls != null) {
+        controls.update()
+        if (!controls.enabled) {
+            
+        }
+    }
+    camera.lookAt(0, -0.5, 0)
     camera.updateProjectionMatrix()
 
     // Stats
